@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:map="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="com.example.caxidy.ejemplomapas.MapsActivity" />
+
+    <ImageButton
+        android:id="@+id/bt_localizame"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_marginTop="10dp"
+        android:onClick="bt_localizame"
+        android:src="@android:drawable/ic_menu_myplaces" />
+    <ImageButton
+        android:id="@+id/bt_zoom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/bt_localizame"
+        android:layout_marginTop="10dp"
+        android:onClick="bt_zoom"
+        android:src="@android:drawable/ic_menu_zoom" />
+    <ImageButton
+        android:id="@+id/bt_tipomapa"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/bt_zoom"
+        android:layout_marginTop="10dp"
+        android:onClick="bt_tipomapa"
+        android:src="@android:drawable/ic_menu_mapmode" />
+    <ImageButton
+        android:id="@+id/ir_a_UGR"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/bt_tipomapa"
+        android:layout_marginTop="10dp"
+        android:onClick="bt_animateCamera"
+        android:src="@android:drawable/ic_menu_directions" />
+    <ImageButton
+        android:id="@+id/bt_borrar_ruta"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/ir_a_UGR"
+        android:layout_marginTop="10dp"
+        android:onClick="bt_borrarRuta"
+        android:src="@android:drawable/ic_menu_delete" />
+    <ImageButton
+        android:id="@+id/bt_streetview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/bt_borrar_ruta"
+        android:layout_marginTop="10dp"
+        android:onClick="bt_verStreetview"
+        android:src="@android:drawable/ic_menu_view" />
+
+</RelativeLayout>
