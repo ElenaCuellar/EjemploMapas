@@ -1,9 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <EditTextPreference
-        android:key="marcadoresRuta"
-        android:title="Marcadores_Ruta"
-        android:summary="Contador de los marcadores para formar una ruta"
-        android:dialogTitle="Marcadores de ruta"
-        android:defaultValue="0"/>
+        android:key="textomarcador"
+        android:title="@string/prefmarktitle"
+        android:summary="@string/prefmarkdesc"
+        android:dialogTitle="@string/prefmarktitle"
+        android:defaultValue="@string/textoDefaultMarker"/>
+    <PreferenceCategory
+        android:key="grupo"
+        android:title="@string/prefGrupo">
+        <EditTextPreference
+            android:key="latP"
+            android:title="@string/preflattitle"
+            android:summary="@string/preflatdesc"
+            android:dialogTitle="@string/preflattitle"
+            android:defaultValue="@string/latPrefs"
+            android:inputType="numberSigned|numberDecimal"/>
+        <EditTextPreference
+            android:key="lgP"
+            android:title="@string/preflongtitle"
+            android:summary="@string/preflongdesc"
+            android:dialogTitle="@string/preflongtitle"
+            android:defaultValue="@string/longPrefs"
+            android:inputType="numberSigned|numberDecimal"/>
+    </PreferenceCategory>
 </PreferenceScreen>

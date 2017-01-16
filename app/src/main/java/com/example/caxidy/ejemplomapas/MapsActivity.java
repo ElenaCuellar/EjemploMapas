@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -15,6 +16,11 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.widget.Toast;
+import java.util.HashMap;
+import java.util.List;
+import org.json.JSONObject;
+import android.os.AsyncTask;
+import android.util.Log;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -58,11 +64,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //ArrayList que almacena los marcadores de la ruta de tres puntos
     ArrayList<LatLng> arrayRuta = new ArrayList<>();
 
+    final String TAG = "PathGoogleMapActivity";
+
     //Polyline que forma la ruta especificada
     Polyline polilinea;
 
     //ArrayList que almacena los marcadores que se recuperan al reanudar la actividad
     ArrayList<Marker> arrayMarkers = new ArrayList<>();
+
+    //Texto que aparece en los marcadores
+    String txMarker;
+    //Latitud y longitud que guardaremos en preferencias para ir a un punto dado (por defecto la UGR)
+    Double latitudPref, longitudPref;
 
     private static final int PERMISSION_REQUEST_ACCESS_FINE_LOCATION = 1;
 
@@ -77,6 +90,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        //Para obtener la ruta
+        String url = getMapsApiDirectionsUrl();
+        ReadTask downloadTask = new ReadTask();
+        downloadTask.execute(url);
 
         //Recuperar la ruta y la informacion necesaria con SharedPreferences
         SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
@@ -94,6 +112,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             posic = new LatLng(Double.parseDouble(sharedPref.getString("lat3","0")),Double.parseDouble(sharedPref.getString("long3","0")));
             arrayRuta.add(posic);
         }
+
+        //Seleccionar el texto de los marcadores y otras preferencias
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        txMarker = sp.getString("textomarcador",getString(R.string.textoDefaultMarker));
+        latitudPref = Double.parseDouble(sp.getString("latP",getString(R.string.latPrefs)));
+        longitudPref = Double.parseDouble(sp.getString("lgP",getString(R.string.longPrefs)));
 
     }
 
@@ -118,15 +142,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         editor.commit();
     }
 
-    //Comprobar permiso para versiones 6.0
     @Override
     public void onResume() {
         super.onResume();
+        //Comprobar permiso para versiones 6.0
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                         PERMISSION_REQUEST_ACCESS_FINE_LOCATION);
         }
+        //Seleccionar el texto de los marcadores
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        txMarker = sp.getString("textomarcador",getString(R.string.textoDefaultMarker));
+        latitudPref = Double.parseDouble(sp.getString("latP",getString(R.string.latPrefs)));
+        longitudPref = Double.parseDouble(sp.getString("lgP",getString(R.string.longPrefs)));
     }
 
     @Override
@@ -165,8 +194,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.getUiSettings().setZoomControlsEnabled(true);
         // Aparece la brujula cuando giramos el mapa
         mMap.getUiSettings().setCompassEnabled(true);
-
-        // mMap.getUiSettings().set.... para otras configuraciones
+        //Se permite la inclinacion
+        mMap.getUiSettings().setTiltGesturesEnabled(true);
 
         // Listener de los eventos que detectan pulsaciones sobre la pantalla
         mapFragment.getMap().setOnMapClickListener(new OnMapClickListener()
@@ -176,7 +205,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             {
                 mMap.addMarker(new MarkerOptions()
                         .position(posicion)
-                        .title("Marcador creado con onMapClick"));
+                        .title(txMarker+"(onMapClick)"));
                 if(arrayRuta.size()<3)
                     arrayRuta.add(posicion);
                 comprobarRuta();
@@ -187,7 +216,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onMapLongClick(LatLng posicion) {
                 mMap.addMarker(new MarkerOptions()
                         .position(posicion)
-                        .title("Marcador creado con onMapLongClick")
+                        .title(txMarker+"(onMapLongClick)")
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.
                                 HUE_BLUE)));
                 if(arrayRuta.size()<3)
@@ -198,7 +227,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Add a marker in Sydney and move the camera
         LatLng granada = new LatLng(37.18,-3.62);
-        mMap.addMarker(new MarkerOptions().position(granada).title("Marker in Granada"));
+        mMap.addMarker(new MarkerOptions().position(granada).title(getString(R.string.markerGr)));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(granada));
 
         //Llamar a comprobar la ruta para dibujarla y poner sus marcadores en caso de haber girado la pantalla
@@ -206,11 +235,97 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         colocarMarcadoresRuta();
     }
 
-    private void comprobarRuta(){
-        if(arrayRuta.size()==3){
+    private String getMapsApiDirectionsUrl() {
+        //Pasar los puntos de la ruta
+        String waypoints = "waypoints=optimize:true|"
+                + arrayRuta.get(0).latitude + "," + arrayRuta.get(0).longitude
+                + "|" + "|" + arrayRuta.get(1).latitude + ","
+                + arrayRuta.get(1).longitude + "|" + arrayRuta.get(2).latitude + ","
+                + arrayRuta.get(2).longitude;
+
+        String sensor = "sensor=false";
+        String params = waypoints + "&" + sensor;
+        String output = "json";
+        String url = "https://maps.googleapis.com/maps/api/directions/"
+                + output + "?" + params;
+        return url;
+    }
+
+    private class ReadTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... url) {
+            String data = "";
+            try {
+                HttpConnection http = new HttpConnection();
+                data = http.readUrl(url[0]);
+            } catch (Exception e) {
+                Log.d("Background Task", e.toString());
+            }
+            return data;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            new ParserTask().execute(result);
+        }
+    }
+
+    private class ParserTask extends
+            AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
+
+        @Override
+        protected List<List<HashMap<String, String>>> doInBackground(
+                String... jsonData) {
+
+            JSONObject jObject;
+            List<List<HashMap<String, String>>> routes = null;
+
+            try {
+                jObject = new JSONObject(jsonData[0]);
+                PathJSONParser parser = new PathJSONParser();
+                routes = parser.parse(jObject);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return routes;
+        }
+
+        @Override
+        protected void onPostExecute(List<List<HashMap<String, String>>> routes) {
+            ArrayList<LatLng> points = null;
+            PolylineOptions polyLineOptions = null;
+
+            // traversing through routes
+            for (int i = 0; i < routes.size(); i++) {
+                points = new ArrayList<LatLng>();
+                polyLineOptions = new PolylineOptions();
+                List<HashMap<String, String>> path = routes.get(i);
+
+                for (int j = 0; j < path.size(); j++) {
+                    HashMap<String, String> point = path.get(j);
+
+                    double lat = Double.parseDouble(point.get("lat"));
+                    double lng = Double.parseDouble(point.get("lng"));
+                    LatLng position = new LatLng(lat, lng);
+
+                    points.add(position);
+                }
+
+                polyLineOptions.addAll(points);
+                polyLineOptions.width(2);
+                polyLineOptions.color(Color.BLUE);
+            }
+
+            mMap.addPolyline(polyLineOptions);
+        }
+    }
+
+    private void comprobarRuta(){ //!!
+        /*if(arrayRuta.size()==3){
             //Dibujar la ruta
             polilinea = mMap.addPolyline(new PolylineOptions().addAll(arrayRuta).width(15).color(Color.BLUE).geodesic(true));
-        }
+        }*/
     }
 
     private void colocarMarcadoresRuta(){
@@ -218,7 +333,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         for(int i=0;i<arrayRuta.size();i++) {
             Marker mk = mMap.addMarker(new MarkerOptions()
                     .position(arrayRuta.get(i))
-                    .title("Marcador recuperado")
+                    .title(txMarker+"(recuperado)")
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
             arrayMarkers.add(mk);
         }
@@ -229,9 +344,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Nos registramos para recibir actualizaciones de la posición
         locListener = new LocationListener() {
             public void onLocationChanged(Location location) {
-                System.out.println("Cambio de posicion");
+                System.out.println(getString(R.string.nuevaPos));
                 posicionActual = location;
-                Toast.makeText(getApplicationContext(), "Nueva Posicion :" +
+                Toast.makeText(getApplicationContext(), getString(R.string.nuevaPos) +" "+
                                 posicionActual.getLatitude() + " , " + posicionActual.getLongitude()
                         , Toast.LENGTH_LONG).show();
             }
@@ -255,13 +370,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (posicionActual == null) {
                     // Obtenemos la última posición conocida por GPS
                     posicionActual = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                    Toast.makeText(getApplicationContext(), "Ultima Posicion por GPS" , Toast.LENGTH_LONG).show();
-                    System.out.println("Ultima Posicion por GPS");
+                    Toast.makeText(getApplicationContext(), getString(R.string.ultimaPosGps) , Toast.LENGTH_LONG).show();
+                    System.out.println(getString(R.string.ultimaPosGps));
                 } else {
-                    Toast.makeText(getApplicationContext(), "Posicion por GPS" , Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), getString(R.string.posGps) , Toast.LENGTH_LONG).show();
                 }
             }catch(SecurityException e){
-                System.out.println("Excepcion de seguridad al buscar posicion por GPS");
+                System.out.println(getString(R.string.securityGps));
             }
         }
         else {
@@ -271,19 +386,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (posicionActual == null) {
                 // Obtenemos la última posición conocida por RED
                     posicionActual = locManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                    Toast.makeText(getApplicationContext(), "Ultima Posicion por NETWORK_PROVIDER ",Toast.LENGTH_LONG).show();
-                    System.out.println("Ultima Posicion por red");
+                    Toast.makeText(getApplicationContext(), getString(R.string.ultimaPosRed),Toast.LENGTH_LONG).show();
+                    System.out.println(getString(R.string.ultimaPosRed));
                 } else {
-                    Toast.makeText(getApplicationContext(), "Posicion por NETWORK_PROVIDER ",Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), getString(R.string.posRed),Toast.LENGTH_LONG).show();
                 }
             }catch(SecurityException e){
-                System.out.println("Excepcion de seguridad al buscar posicion por red");
+                System.out.println(getString(R.string.securityRed));
             }
         }
         try {
             locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 30000, 0, locListener);
         }catch (SecurityException e){
-            System.out.println("Excepcion de seguridad");
+            System.out.println(getString(R.string.securityEx));
         }
     }
 
@@ -304,11 +419,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // Comprobamos si hemos obtenido NUESTRA POSICION ACTUAL ( ULTIMA OBTENIDA ) correctamente
             if (posicionActual != null) {
                 addMarcador(new LatLng(posicionActual.getLatitude(),
-                        posicionActual.getLongitude()),"Titulo : Aqui estamos", "Snippet : Anexo al titulo");
+                        posicionActual.getLongitude()),getString(R.string.tituloPos), getString(R.string.snippetPos));
             }
             else {
-                Toast.makeText(getApplicationContext(), "Posicion actual nula", Toast.LENGTH_SHORT);
-                System.out.println("Posicion actual nula");
+                Toast.makeText(getApplicationContext(), getString(R.string.posNula), Toast.LENGTH_SHORT);
+                System.out.println(getString(R.string.posNula));
             }
         }
     }
@@ -351,27 +466,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    // Movimiento de camara a una posicion realizando el movimiento
+    // Movimiento de camara a una posicion que tenemos guardada en preferencias, realizando el movimiento
     public void bt_animateCamera(View v) {
         // Comprobamos si hemos obtenido el MAPA correctamente
         if (mMap != null) {
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(37.173127,-3.6065), 15));
-            addMarcador(new LatLng(37.173127, -3.6065), "titulo", "snippet");
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitudPref,longitudPref), 15));
+            addMarcador(new LatLng(latitudPref, longitudPref),getString(R.string.posFav), getString(R.string.posFavSnippet));
         }
     }
 
     //Borrar la ruta creada
     public void bt_borrarRuta(View v){
         AlertDialog.Builder alertDialogBu = new AlertDialog.Builder(this);
-        alertDialogBu.setTitle("Borrar ruta");
-        alertDialogBu.setMessage("Pulse Aceptar para borrar la ruta");
+        alertDialogBu.setTitle(getString(R.string.borrarRuta));
+        alertDialogBu.setMessage(getString(R.string.msDiag));
         alertDialogBu.setIcon(R.mipmap.ic_launcher);
-        alertDialogBu.setNeutralButton("Cancelar", new DialogInterface.OnClickListener() {
+        alertDialogBu.setNeutralButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {}
         });
-        alertDialogBu.setPositiveButton( "Aceptar", new DialogInterface.OnClickListener() {
+        alertDialogBu.setPositiveButton(getString(R.string.aceptar), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                polilinea.remove();
+                if(polilinea != null)
+                    polilinea.remove();
                 for(int i=0;i<arrayMarkers.size();i++)
                     arrayMarkers.get(i).remove();
 
@@ -382,8 +498,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         AlertDialog alertDialog = alertDialogBu.create();
         alertDialog.show();
     }
+    //Lanzar la actividad del StreetView
     public void bt_verStreetview(View v){
         Intent intent = new Intent(this, StreetViewActivity.class);
+        if(posicionActual != null) {
+            intent.putExtra("latitudActual", posicionActual.getLatitude());
+            intent.putExtra("longitudActual", posicionActual.getLongitude());
+        }
+        else{
+            //Le pasamos una posicion por defecto:
+            intent.putExtra("latitudActual", 37.18);
+            intent.putExtra("longitudActual",-3.62);
+        }
         startActivity(intent);
+    }
+    //Editar el texto de los marcadores y otras preferencias
+    public void bt_editar(View v){
+        //Abrir preferencias...
+        Intent i = new Intent(this,ActivityPref.class);
+        startActivity(i);
     }
 }

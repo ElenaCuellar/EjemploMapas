@@ -18,6 +18,10 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <permission
+        android:name="com.javapapers.android.maps.path.permission.MAPS_RECEIVE"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="com.javapapers.android.maps.path.permission.MAPS_RECEIVE" />
     <uses-permission android:name="com.ptrprograms.streetview.permission.MAPS_RECEIVE" />
 
     <application

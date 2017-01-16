@@ -53,19 +53,28 @@
         android:id="@+id/bt_borrar_ruta"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@id/ir_a_UGR"
+        android:layout_toRightOf="@id/bt_localizame"
         android:layout_marginTop="10dp"
+        android:layout_marginLeft="6dp"
         android:onClick="bt_borrarRuta"
         android:src="@android:drawable/ic_menu_delete" />
     <ImageButton
         android:id="@+id/bt_streetview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@id/bt_borrar_ruta"
+        android:layout_toRightOf="@id/bt_borrar_ruta"
         android:layout_marginTop="10dp"
+        android:layout_marginLeft="6dp"
         android:onClick="bt_verStreetview"
         android:src="@android:drawable/ic_menu_view" />
+    <ImageButton
+        android:id="@+id/bt_edit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/bt_streetview"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="6dp"
+        android:onClick="bt_editar"
+        android:src="@android:drawable/ic_menu_edit" />
 
 </RelativeLayout>

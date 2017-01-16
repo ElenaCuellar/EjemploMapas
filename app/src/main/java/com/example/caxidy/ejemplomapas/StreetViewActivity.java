@@ -23,9 +23,9 @@ public class StreetViewActivity extends AppCompatActivity implements GoogleApiCl
 
     private GoogleApiClient mLocationClient;
     private LatLng mCurrentLocation;
-    private float mBearing;
-    private float mTilt;
-    private float mZoom;
+    private float mBearing; //orientacion
+    private float mTilt; //inclinacion
+    private float mZoom; //zoom
 
     private StreetViewPanorama mPanorama;
 
@@ -43,9 +43,11 @@ public class StreetViewActivity extends AppCompatActivity implements GoogleApiCl
                 }
             }
         }
-        /*!!else{
-            mCurrentLocation = new LatLng(37.18,-3.62);
-        }*/
+        else{
+            Bundle extras = getIntent().getExtras();
+            if(extras != null)
+                mCurrentLocation = new LatLng(extras.getDouble("latitudActual"), extras.getDouble("longitudActual"));
+        }
     }
     @Override
     public void onBackPressed(){finish();}
@@ -57,7 +59,7 @@ public class StreetViewActivity extends AppCompatActivity implements GoogleApiCl
             if(fragment != null) {
                 mPanorama = fragment.getStreetViewPanorama();
                 if(mPanorama != null && mCurrentLocation != null) {
-                    System.out.println("Hay una localizacion disponible");
+                    System.out.println(getString(R.string.svposdisp));
                     StreetViewPanoramaCamera.Builder builder = new StreetViewPanoramaCamera.Builder(mPanorama.getPanoramaCamera());
                     if(mBearing != builder.bearing)
                         builder.bearing = mBearing;
@@ -68,6 +70,7 @@ public class StreetViewActivity extends AppCompatActivity implements GoogleApiCl
                     mPanorama.animateTo(builder.build(), 0);
                     mPanorama.setPosition(mCurrentLocation, 300);
                     mPanorama.setStreetNamesEnabled(true);
+                    mPanorama.setZoomGesturesEnabled(true);
                 }
             }
         }
@@ -103,7 +106,7 @@ public class StreetViewActivity extends AppCompatActivity implements GoogleApiCl
                 @Override
                 public void onConnectionSuspended(int cause) {
                     if (BuildConfig.DEBUG)
-                        Toast.makeText(getApplicationContext(),"Se suspendio la conexion ("+cause+")",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(),getString(R.string.svsusp)+" ("+cause+")",Toast.LENGTH_SHORT).show();
                 }
             }).build();
         if(!mLocationClient.isConnected() && !mLocationClient.isConnecting())
@@ -118,7 +121,7 @@ public class StreetViewActivity extends AppCompatActivity implements GoogleApiCl
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        Toast.makeText(getApplicationContext(),"La conexion a StreetView ha fallado",Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(),getString(R.string.svfail),Toast.LENGTH_SHORT).show();
     }
 
     @Override

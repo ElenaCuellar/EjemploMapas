@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">EjemploMapas</string>
+    <string name="textoDefaultMarker">"Marker "</string>
+    <string name="markerGr">Marker in Granada</string>
+    <string name="nuevaPos">New location</string>
+    <string name="ultimaPosGps">Latest location via GPS</string>
+    <string name="posGps">Location via GPS</string>
+    <string name="securityGps">A security exception occurred while searching GPS location</string>
+    <string name="securityRed">A security exception occurred while searching network location</string>
+    <string name="ultimaPosRed">Latest location via NETWORK_PROVIDER</string>
+    <string name="posRed">Location via NETWORK_PROVIDER</string>
+    <string name="securityEx">Security exception</string>
+    <string name="snippetPos">This is your location</string>
+    <string name="tituloPos">Current location</string>
+    <string name="posNula">Null current location</string>
+    <string name="posFav">Fav location</string>
+    <string name="posFavSnippet">This is your location saved as fav</string>
+    <string name="aceptar">OK</string>
+    <string name="borrarRuta">Delete route</string>
+    <string name="cancel">Cancel</string>
+    <string name="msDiag">Select OK to delete the route</string>
+    <string name="prefmarkdesc">Text to define markers</string>
+    <string name="prefmarktitle">Markers text</string>
+    <string name="prefGrupo">Fav location</string>
+    <string name="preflatdesc">Fav location latitude</string>
+    <string name="preflattitle">Fav latitude</string>
+    <string name="preflongdesc">Fav location longitude</string>
+    <string name="preflongtitle">Fav longitude</string>
+    <string name="svfail">StreetView connection failed</string>
+    <string name="svposdisp">There is an available location</string>
+    <string name="svsusp">Connection suspended</string>
+    <string name="httperr">Error while connecting to http</string>
+</resources>

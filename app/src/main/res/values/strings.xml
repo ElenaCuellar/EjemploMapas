@@ -1,4 +1,38 @@
 <resources>
     <string name="app_name">EjemploMapas</string>
-    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_maps" translatable="false">Map</string>
+    <string name="textoDefaultMarker">Marcador </string>
+    <string name="latPrefs" translatable="false">37.173127</string>
+    <string name="longPrefs" translatable="false">-3.6065</string>
+    <string name="markerGr">Marcador en Granada</string>
+    <string name="nuevaPos">Nueva posicion</string>
+    <string name="ultimaPosGps">Ultima posicion por GPS</string>
+    <string name="posGps">Posicion por GPS</string>
+    <string name="securityGps">Excepcion de seguridad al buscar posicion por GPS</string>
+    <string name="securityRed">Excepcion de seguridad al buscar posicion por red</string>
+    <string name="ultimaPosRed">Ultima posicion por NETWORK_PROVIDER</string>
+    <string name="posRed">Posicion por NETWORK_PROVIDER</string>
+    <string name="securityEx">Excepcion de seguridad</string>
+    <string name="tituloPos">Posicion actual</string>
+    <string name="snippetPos">Esta es tu posicion</string>
+    <string name="posNula">Posicion actual nula</string>
+    <string name="posFav">Posicion favorita</string>
+    <string name="posFavSnippet">Esta es tu posicion guardada como favorita</string>
+    <string name="borrarRuta">Borrar ruta</string>
+    <string name="msDiag">Pulse ACEPTAR para borrar la ruta</string>
+    <string name="cancel">Cancelar</string>
+    <string name="aceptar">Aceptar</string>
+    <string name="prefmarktitle">Texto de los marcadores</string>
+    <string name="prefmarkdesc">Texto que define los marcadores</string>
+    <string name="prefGrupo">Posicion favorita</string>
+    <string name="preflattitle">Latitud favorita</string>
+    <string name="preflatdesc">Latitud para la posicion favorita</string>
+    <string name="preflongtitle">Longitud favorita</string>
+    <string name="preflongdesc">Longitud para la posicion favorita</string>
+    <string name="svposdisp">Hay una posicion disponible</string>
+    <string name="svsusp">Se suspendio la conexion</string>
+    <string name="svfail">La conexion a StreetView ha fallado</string>
+    <string name="httperr">Error en la conexion http</string>
+
+
 </resources>
