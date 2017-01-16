@@ -30,5 +30,5 @@
     <string name="svfail">StreetView connection failed</string>
     <string name="svposdisp">There is an available location</string>
     <string name="svsusp">Connection suspended</string>
-    <string name="httperr">Error while connecting to http</string>
+    <string name="rutaNoValida">Invalid route. Restarting the number of route markers...</string>
 </resources>

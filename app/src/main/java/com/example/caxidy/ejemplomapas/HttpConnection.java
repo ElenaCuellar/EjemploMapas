@@ -7,13 +7,10 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import android.content.Context;
-import android.widget.Toast;
+import android.util.Log;
 
 public class HttpConnection {
-    Context contexto;
     public String readUrl(String mapsApiDirectionsUrl) throws IOException {
-        contexto = new MapsActivity().getApplicationContext();
         String data = "";
         InputStream iStream = null;
         HttpURLConnection urlConnection = null;
@@ -32,7 +29,7 @@ public class HttpConnection {
             data = sb.toString();
             br.close();
         } catch (Exception e) {
-            Toast.makeText(contexto,contexto.getString(R.string.httperr),Toast.LENGTH_SHORT).show();
+            Log.d("Exception", e.toString());
         } finally {
             iStream.close();
             urlConnection.disconnect();

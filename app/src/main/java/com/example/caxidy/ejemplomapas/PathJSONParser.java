@@ -19,23 +19,23 @@ public class PathJSONParser {
         JSONArray jSteps = null;
         try {
             jRoutes = jObject.getJSONArray("routes");
-            /** Traversing all routes */
+            /** Recorriendo todas las rutas */
             for (int i = 0; i < jRoutes.length(); i++) {
                 jLegs = ((JSONObject) jRoutes.get(i)).getJSONArray("legs");
                 List<HashMap<String, String>> path = new ArrayList<HashMap<String, String>>();
 
-                /** Traversing all legs */
+                /** Recorriendo todos los tramos */
                 for (int j = 0; j < jLegs.length(); j++) {
                     jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
 
-                    /** Traversing all steps */
+                    /** Recorriendo todos los pasos */
                     for (int k = 0; k < jSteps.length(); k++) {
                         String polyline = "";
                         polyline = (String) ((JSONObject) ((JSONObject) jSteps
                                 .get(k)).get("polyline")).get("points");
                         List<LatLng> list = decodePoly(polyline);
 
-                        /** Traversing all points */
+                        /** Recorriendo todos los puntos */
                         for (int l = 0; l < list.size(); l++) {
                             HashMap<String, String> hm = new HashMap<String, String>();
                             hm.put("lat",

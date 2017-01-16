@@ -64,8 +64,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //ArrayList que almacena los marcadores de la ruta de tres puntos
     ArrayList<LatLng> arrayRuta = new ArrayList<>();
 
-    final String TAG = "PathGoogleMapActivity";
-
     //Polyline que forma la ruta especificada
     Polyline polilinea;
 
@@ -90,11 +88,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-        //Para obtener la ruta
-        String url = getMapsApiDirectionsUrl();
-        ReadTask downloadTask = new ReadTask();
-        downloadTask.execute(url);
 
         //Recuperar la ruta y la informacion necesaria con SharedPreferences
         SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
@@ -243,11 +236,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 + arrayRuta.get(1).longitude + "|" + arrayRuta.get(2).latitude + ","
                 + arrayRuta.get(2).longitude;
 
-        String sensor = "sensor=false";
-        String params = waypoints + "&" + sensor;
-        String output = "json";
-        String url = "https://maps.googleapis.com/maps/api/directions/"
-                + output + "?" + params;
+        String url = "https://maps.googleapis.com/maps/api/directions/json?origin="+arrayRuta.get(0).latitude+","+arrayRuta.get(0).longitude+"&destination="+arrayRuta.get(2).latitude+","+arrayRuta.get(2).longitude+
+                "&"+waypoints+"&sensor=false&API_KEY";
         return url;
     }
 
@@ -296,36 +286,44 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             ArrayList<LatLng> points = null;
             PolylineOptions polyLineOptions = null;
 
-            // traversing through routes
-            for (int i = 0; i < routes.size(); i++) {
-                points = new ArrayList<LatLng>();
-                polyLineOptions = new PolylineOptions();
-                List<HashMap<String, String>> path = routes.get(i);
+            try {
 
-                for (int j = 0; j < path.size(); j++) {
-                    HashMap<String, String> point = path.get(j);
+                //Recorriendo las rutas
+                for (int i = 0; i < routes.size(); i++) {
+                    points = new ArrayList<LatLng>();
+                    polyLineOptions = new PolylineOptions();
+                    List<HashMap<String, String>> path = routes.get(i);
 
-                    double lat = Double.parseDouble(point.get("lat"));
-                    double lng = Double.parseDouble(point.get("lng"));
-                    LatLng position = new LatLng(lat, lng);
+                    for (int j = 0; j < path.size(); j++) {
+                        HashMap<String, String> point = path.get(j);
 
-                    points.add(position);
+                        double lat = Double.parseDouble(point.get("lat"));
+                        double lng = Double.parseDouble(point.get("lng"));
+                        LatLng position = new LatLng(lat, lng);
+
+                        points.add(position);
+                    }
+
+                    polyLineOptions.addAll(points);
+                    polyLineOptions.width(5);
+                    polyLineOptions.color(Color.GREEN);
                 }
 
-                polyLineOptions.addAll(points);
-                polyLineOptions.width(2);
-                polyLineOptions.color(Color.BLUE);
+                polilinea = mMap.addPolyline(polyLineOptions);
+            }catch(Exception e){
+                Toast.makeText(getApplicationContext(),getString(R.string.rutaNoValida),Toast.LENGTH_SHORT).show();
+                borrarRuta();
             }
-
-            mMap.addPolyline(polyLineOptions);
         }
     }
 
-    private void comprobarRuta(){ //!!
-        /*if(arrayRuta.size()==3){
-            //Dibujar la ruta
-            polilinea = mMap.addPolyline(new PolylineOptions().addAll(arrayRuta).width(15).color(Color.BLUE).geodesic(true));
-        }*/
+    private void comprobarRuta(){
+        if(arrayRuta.size()==3){
+            //Para dibujar la ruta
+            String url = getMapsApiDirectionsUrl();
+            ReadTask downloadTask = new ReadTask();
+            downloadTask.execute(url);
+        }
     }
 
     private void colocarMarcadoresRuta(){
@@ -486,18 +484,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
         alertDialogBu.setPositiveButton(getString(R.string.aceptar), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                if(polilinea != null)
-                    polilinea.remove();
-                for(int i=0;i<arrayMarkers.size();i++)
-                    arrayMarkers.get(i).remove();
-
-                arrayMarkers.clear();
-                arrayRuta.clear();
+                borrarRuta();
             }
         });
         AlertDialog alertDialog = alertDialogBu.create();
         alertDialog.show();
     }
+
+    public void borrarRuta(){
+        if(polilinea != null)
+            polilinea.remove();
+
+        for(int i=0;i<arrayMarkers.size();i++)
+            arrayMarkers.get(i).remove();
+
+        arrayMarkers.clear();
+        arrayRuta.clear();
+    }
+
     //Lanzar la actividad del StreetView
     public void bt_verStreetview(View v){
         Intent intent = new Intent(this, StreetViewActivity.class);

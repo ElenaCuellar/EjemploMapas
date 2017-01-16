@@ -32,7 +32,6 @@
     <string name="svposdisp">Hay una posicion disponible</string>
     <string name="svsusp">Se suspendio la conexion</string>
     <string name="svfail">La conexion a StreetView ha fallado</string>
-    <string name="httperr">Error en la conexion http</string>
-
+    <string name="rutaNoValida">Ruta no valida. Reiniciando el numero de marcadores de ruta...</string>
 
 </resources>
